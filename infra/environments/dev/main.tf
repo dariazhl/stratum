@@ -4,6 +4,10 @@ terraform {
       source  = "hashicorp/azurerm"
       version = "~> 3.0"
     }
+    databricks = {
+      source  = "databricks/databricks"
+      version = "~> 1.0"
+    }
   }
 }
 
@@ -49,4 +53,38 @@ resource "azurerm_storage_container" "gold" {
   name                  = "gold"
   storage_account_name  = azurerm_storage_account.datalake.name
   container_access_type = "private"
+}
+
+resource "azurerm_databricks_workspace" "main" {
+  name                = "dbw-stratum-${var.environment}"
+  resource_group_name = azurerm_resource_group.main.name
+  location            = azurerm_resource_group.main.location
+  sku                 = "premium"
+
+  tags = azurerm_resource_group.main.tags
+}
+
+provider "databricks" {
+  host = azurerm_databricks_workspace.main.workspace_url
+}
+
+resource "databricks_cluster_policy" "dev_policy" {
+  name = "stratum-dev-policy"
+
+  definition = jsonencode({
+    "autotermination_minutes" = {
+      "type"  = "fixed"
+      "value" = 20
+    }
+    "num_workers" = {
+      "type"     = "range"
+      "minValue" = 1
+      "maxValue" = 4
+    }
+    "node_type_id" = {
+      "type"         = "allowlist"
+      "values"       = ["Standard_DS3_v2", "Standard_DS4_v2"]
+      "defaultValue" = "Standard_DS3_v2"
+    }
+  })
 }
