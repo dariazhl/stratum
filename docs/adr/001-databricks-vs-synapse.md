@@ -1,71 +1,33 @@
 # ADR 001: Databricks over Azure Synapse Analytics
 
-## Date
-April 2026
-
-## Status
-Accepted
-
 ## Context
-Stratum requires a unified compute environment for 
-large-scale data transformation, streaming ingestion,
-and AI workload serving on Azure. Two credible options
-exist in the Azure ecosystem: Databricks and Synapse
-Analytics.
+We needed to pick a compute platform that could handle the full range of what Stratum does: raw ingestion, large-scale transformation, and eventually serving AI workloads — all on Azure. The two realistic options were Databricks and Synapse Analytics.
 
-Both support Delta Lake. Both integrate with ADLS Gen2.
-Both offer Spark-based compute. The decision hinges on
-which platform better supports the full lifecycle from
-raw ingestion through to AI serving at enterprise scale.
+On paper they look similar. Both support Delta Lake. Both sit on top of ADLS Gen2. Both give you Spark. But as we dug into the details, the gap between them turned out to be much wider than the feature matrix suggested.
 
 ## Decision
 Databricks is the primary compute platform for Stratum.
 
 ## Reasoning
 
-**Delta Lake is native in Databricks.**
-Databricks created Delta Lake. OPTIMIZE, ZORDER, 
-AUTO OPTIMIZE, and DESCRIBE HISTORY are first-class
-operations. Unity Catalog governance is native.
-In Synapse, Delta Lake support exists but lags the
-reference implementation and lacks Unity Catalog
-integration.
+**Databricks built Delta Lake, and it shows.** OPTIMIZE, ZORDER, DESCRIBE HISTORY — these aren't bolted on, they're just part of how the platform works. Synapse technically supports Delta, but it's always a version or two behind and some of the more useful operational commands either don't exist or behave differently. That gap matters when you're running this at scale.
 
-**Unity Catalog provides column-level lineage 
-automatically.**
-For a platform designed to answer regulatory questions
-about data provenance, automatic lineage tracking from
-ingestion to serving is not optional. Synapse has no
-equivalent capability.
+**Unity Catalog was the deciding factor.** We need to be able to answer regulatory questions about where data came from and how it moved through the platform. Unity Catalog gives us column-level lineage automatically — every read and write is tracked without us having to instrument anything. Synapse has nothing equivalent. We'd be building that ourselves, and we'd probably never quite catch everything.
 
-**The AI serving layer integrates without additional
-architectural complexity.**
-Databricks Model Serving, MLflow, and Feature Store
-sit on top of the same Delta tables the transformation
-layer writes to. In Synapse this connection requires
-significant additional engineering.
+**The ML layer fits without extra work.** Databricks Model Serving, MLflow, and the Feature Store are all reading from the same Delta tables that the transformation layer writes to. There's no handoff, no export step, no format conversion. Getting the same result in Synapse would have required a meaningful amount of additional engineering that we'd then own forever.
 
 ## Trade-offs accepted
-Higher per-DBU cost than Synapse for pure SQL workloads.
-Steeper learning curve for SQL-only teams. Synapse is 
-the correct choice for organisations that are deeply
-Azure-native with primarily SQL workloads at modest
-scale. Stratum is designed for AI workload serving
-at enterprise scale — the operational advantages of
-Databricks outweigh the cost premium.
+
+Databricks costs more per compute unit than Synapse for straight SQL workloads. If Stratum were primarily a SQL analytics platform running batch queries for a BI team, Synapse would probably be the right answer. It's also a gentler learning curve for people who've spent their careers in T-SQL.
+
+But we're building for AI serving at enterprise scale, and for that the operational advantages of Databricks outweigh the cost premium. The lineage and governance story alone justifies it.
 
 ## Alternatives considered
-**Azure Synapse Analytics** — rejected. Delta Lake 
-support lags the reference implementation. Unity 
-Catalog lineage unavailable.
 
-**Microsoft Fabric** — rejected. Not production-mature
-for complex multi-environment enterprise deployments
-as of April 2026. Worth revisiting in 12 months.
+**Azure Synapse Analytics** — we looked at it seriously, but the Delta Lake support lagging the reference implementation and the absence of any Unity Catalog equivalent were blockers, not just inconveniences.
+
+**Microsoft Fabric** — interesting direction but not where we want to be right now. As of April 2026 it's not mature enough for a complex multi-environment deployment. Worth revisiting in a year.
 
 ## Consequences
-All transformation and AI serving compute runs on
-Databricks. The team must be comfortable with PySpark
-and the Databricks workspace. Future decisions should
-be evaluated against compatibility with the Databricks
-ecosystem first.
+
+All transformation and AI serving compute runs on Databricks. The team needs to be comfortable in PySpark and the Databricks workspace — this is a real investment for anyone coming from a pure SQL background. Going forward, any new tool or service we bring in should be evaluated against whether it works well in the Databricks ecosystem, because we're committing to it.

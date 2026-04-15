@@ -1,0 +1,28 @@
+version: 2
+
+sources:
+  - name: bronze
+    description: "Raw immutable data landed from source systems"
+    catalog: dbw_stratum_dev
+    schema: bronze
+    tables:
+      - name: nyc_taxi_yellow
+        description: >
+          NYC Yellow Taxi trip data — raw from source.
+          Immutable after write. Schema preserved exactly
+          as received from the NYC TLC public dataset.
+        columns:
+          - name: VendorID
+            description: "Provider that provided the record"
+          - name: tpep_pickup_datetime
+            description: "Pickup timestamp"
+          - name: tpep_dropoff_datetime
+            description: "Dropoff timestamp"
+          - name: passenger_count
+            description: "Number of passengers"
+          - name: trip_distance
+            description: "Trip distance in miles"
+          - name: fare_amount
+            description: "Fare charged by meter"
+          - name: total_amount
+            description: "Total amount charged"
