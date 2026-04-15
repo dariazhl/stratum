@@ -27,13 +27,13 @@ that can be evaluated, extended, and deployed.
 
 ## Architecture
 
-### Full platform overview
+### Current platform overview
 
-![Stratum architecture](docs/diagrams/architecture_overview.svg)
+![Stratum architecture](docs/diagrams/stratum_architecture_current.svg)
 
-### CI/CD and governance pipeline
+### Current developer workflow
 
-![CI/CD pipeline](docs/diagrams/cicd_governance.svg)
+![Developer workflow](docs/diagrams/stratum_current_workflow.svg)
 
 ---
 
@@ -88,7 +88,8 @@ The gold model is a table materialisation — a business
 aggregate by pickup zone and hour of day showing total 
 trips, average distance, average duration, average fare, 
 total revenue, and average tip rate. Designed for 
-Power BI DirectQuery connection.
+Power BI DirectQuery connection (not yet connected — 
+planned in the next phase).
 
 ### Quality layer
 12 schema tests on the silver model enforcing not_null 
@@ -121,25 +122,38 @@ a policy enforced at the platform level.
 
 ---
 
+## Architecture decision records
+
+Three ADRs document the major design choices made 
+before any code was written. See docs/adr/ for the 
+full decision records.
+
+- ADR 001 — Databricks over Azure Synapse Analytics
+- ADR 002 — Delta Lake over Apache Iceberg
+- ADR 003 — dbt for SQL transformations, Spark for 
+  complex distributed workloads
+
+---
+
 ## What the production version looks like
 
-This is a Minimum Credible Architecture built in three 
-weeks. A production deployment extends it with:
+This is a Minimum Credible Architecture built in 5 days. 
+A production deployment extends it with:
 
 - Event Hub streaming ingestion alongside batch — 
   real-time data freshness for operational AI workloads
 - Multi-environment Terraform with remote state in 
   Azure Blob — separate state files per environment 
   prevent cross-environment blast radius
-- dbt slim CI using state-modified — tests only models 
-  affected by a given pull request, reducing CI runtime 
-  from 45 minutes to under 5
+- GitHub Actions CI/CD — dbt slim CI using 
+  state-modified runs, testing only models affected 
+  by a given pull request
 - Great Expectations data quality checkpoints blocking 
   promotion between layers on failure
+- Power BI DirectQuery connection to the gold layer
 - OpenLineage events emitted to Marquez for 
   cross-platform lineage visible outside Databricks
-- Databricks SQL freshness alerts on pipeline SLA — 
-  alerting not just on failure but on delay
+- Databricks SQL freshness alerts on pipeline SLA
 
 Timeline for full production deployment: 
 12-15 weeks at 10-15 hours per week.
@@ -152,10 +166,10 @@ Timeline for full production deployment:
 |---|---|
 | Compute | Azure Databricks (Premium, Unity Catalog) |
 | Storage | ADLS Gen2, Delta Lake |
-| Transformation | dbt Core 1.10, Apache Spark |
+| Transformation | dbt Core 1.10, Databricks SQL |
 | Governance | Unity Catalog, Delta transaction log |
 | IaC | Terraform 1.5, AzureRM provider |
-| CI/CD | GitHub Actions |
+| CI/CD | Manual (GitHub Actions planned) |
 | Quality | dbt schema tests (15 passing) |
 | Dataset | NYC Yellow Taxi 2024-01 (2,964,624 rows) |
 
@@ -208,4 +222,3 @@ policy limits node size and enforces 20-minute
 auto-termination to prevent runaway compute costs.
 
 ---
-
