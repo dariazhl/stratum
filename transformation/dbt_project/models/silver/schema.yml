@@ -1,0 +1,63 @@
+version: 2
+
+models:
+  - name: stg_nyc_taxi_yellow
+    description: >
+      Cleaned and typed NYC Yellow Taxi trip data.
+      Deduplication applied via trip_id surrogate key.
+      Obvious data quality failures removed.
+      Incremental materialisation — processes only
+      new records on each run.
+    columns:
+      - name: trip_id
+        description: "Surrogate key — unique per trip"
+        tests:
+          - unique
+          - not_null
+
+      - name: vendor_id
+        description: "Provider ID"
+        tests:
+          - not_null
+          - accepted_values:
+              values: [1, 2]
+
+      - name: pickup_datetime
+        description: "Pickup timestamp"
+        tests:
+          - not_null
+
+      - name: dropoff_datetime
+        description: "Dropoff timestamp"
+        tests:
+          - not_null
+
+      - name: passenger_count
+        description: "Number of passengers"
+        tests:
+          - not_null
+
+      - name: trip_distance_miles
+        description: "Trip distance in miles"
+        tests:
+          - not_null
+
+      - name: fare_amount_usd
+        description: "Fare amount in USD"
+        tests:
+          - not_null
+
+      - name: total_amount_usd
+        description: "Total amount in USD"
+        tests:
+          - not_null
+
+      - name: pickup_location_id
+        description: "Pickup zone ID"
+        tests:
+          - not_null
+
+      - name: dropoff_location_id
+        description: "Dropoff zone ID"
+        tests:
+          - not_null

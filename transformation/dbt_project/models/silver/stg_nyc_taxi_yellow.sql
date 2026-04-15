@@ -26,9 +26,21 @@ cleaned as (
         md5(
             cast(VendorID as string) ||
             cast(tpep_pickup_datetime as string) ||
-            cast(tpep_dropoff_datetime as string)
+            cast(tpep_dropoff_datetime as string) ||
+            cast(PULocationID as string) ||
+            cast(DOLocationID as string) ||
+            cast(fare_amount as string) ||
+            cast(row_number() over (
+                partition by
+                    VendorID,
+                    tpep_pickup_datetime,
+                    tpep_dropoff_datetime,
+                    PULocationID,
+                    DOLocationID,
+                    fare_amount
+                order by tpep_pickup_datetime
+            ) as string)
         )                                               as trip_id,
-
         cast(VendorID as int)                           as vendor_id,
         cast(tpep_pickup_datetime as timestamp)         as pickup_datetime,
         cast(tpep_dropoff_datetime as timestamp)        as dropoff_datetime,

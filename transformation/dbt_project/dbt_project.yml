@@ -17,9 +17,6 @@ clean-targets:
 
 models:
   stratum:
-    bronze:
-      +materialized: view
-      +schema: bronze
     silver:
       +materialized: incremental
       +schema: silver
