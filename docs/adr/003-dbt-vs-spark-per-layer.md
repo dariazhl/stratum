@@ -9,10 +9,10 @@ dbt Core handles all SQL-expressible transformation from bronze through gold. Sp
 ## Reasoning
 dbt makes SQL transformation maintainable where every model is versioned, tested, and documented, and the DAG makes dependencies visible without extra tooling. Incremental materialisation is also a practical necessity: a full refresh on a large fact table takes hours; an incremental run takes minutes. The boundary between dbt and Spark is about what SQL can cleanly express, not preference — and it's enforced at code review, not left to convention.
 
-## Trade-offs accepted
+## Trade-offs
 dbt requires a SQL warehouse or Databricks SQL endpoint. Small infrastructure overhead, worth it. Anything that genuinely needs Spark must be explicitly justified and documented — the default is always dbt.
 
-## Alternatives considered
+## Alternatives
 **Spark for everything** — no automated testing, no lineage, no documentation by default. Creates dependency on specific engineers.
 
 **dbt for everything** — dbt can't handle distributed aggregations at scale or ML feature engineering that needs Python. Forcing those in produces slow, expensive models.

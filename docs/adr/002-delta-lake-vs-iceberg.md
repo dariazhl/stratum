@@ -9,10 +9,10 @@ Delta Lake is the table format across all medallion layers: bronze, silver, and 
 ## Reasoning
 Delta Lake is what Databricks is built around — OPTIMIZE, AUTO OPTIMIZE, and DESCRIBE HISTORY behave as documented without surprises. Unity Catalog lineage also only works properly with Delta tables, and automatic column-level lineage is a hard compliance requirement. The small file problem from streaming ingestion is handled in the background by AUTO OPTIMIZE; with Iceberg you'd need to schedule and monitor explicit compaction jobs. Point-in-time recovery is a single command — we've already used it during testing.
 
-## Trade-offs accepted
+## Trade-offs
 Delta is less portable than Iceberg across cloud providers. Stratum is Azure-native by design, so cross-cloud portability isn't a current requirement. If that changes, migrating to Iceberg is feasible but not trivial.
 
-## Alternatives considered
+## Alternatives
 **Apache Iceberg** — better for multi-cloud or vendor-neutral deployments. Lacks native Unity Catalog integration and requires manual compaction management.
 
 **Apache Hudi** — smaller community, less mature tooling, no meaningful advantage for this use case.
