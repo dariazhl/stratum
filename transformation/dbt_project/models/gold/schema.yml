@@ -1,0 +1,21 @@
+version: 2
+
+models:
+  - name: agg_taxi_trips_by_zone_hour
+    description: >
+      Gold aggregate — average trip metrics by
+      pickup zone and hour of day. Business-ready
+      for Power BI DirectQuery connection.
+    columns:
+      - name: pickup_location_id
+        description: "Pickup zone ID"
+        tests:
+          - not_null
+      - name: pickup_hour
+        description: "Hour bucket of pickup"
+        tests:
+          - not_null
+      - name: total_trips
+        description: "Total trips in this zone and hour"
+        tests:
+          - not_null
